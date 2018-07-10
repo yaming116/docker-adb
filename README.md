@@ -1,12 +1,15 @@
 # docker-adb
 
-This repository contains a [Dockerfile](https://www.docker.io/) for the [Android Debug Bridge](http://developer.android.com/tools/help/adb.html). It gives you access to platform tools such as `adb` and `fastboot`.
+This repository contains a [Dockerfile](https://www.docker.io/) for the [Android Debug Bridge](http://developer.android.com/tools/help/adb.html). It gives you access to platform tools such as `adb` .
 
 ## Changes
 
-* _2016-07-02_ The image now uses [Alpine](https://hub.docker.com/_/alpine/) as the base image, making it way smaller. Furthermore, downloading the platform tools is now done in a more cunning way, further removing almost all dependencies and reducing image size. Only platform-tools are now included.
-* _2016-07-02_ Due to internal ADB changes our previous start command no longer works in the latest version. The command has been updated, but if you were specifying it yourself, make sure you're using `adb -a -P 5037 server nodaemon`. Do NOT use the `fork-server` argument anymore.
-* _2016-07-02_ The `.android` directory path has been fixed. Thanks to @alexislg2 for spotting it!
+_2018-7-10_
+---
+
+* The image now uses [arm32v7/ubuntu:16.04](https://hub.docker.com/r/arm32v7/ubuntu/) as the base image, making it way smaller. Furthermore, downloading the platform tools is now done in a more cunning way, further removing almost all dependencies and reducing image size. Only platform-tools are now included.
+*  Due to internal ADB changes our previous start command no longer works in the latest version. The command has been updated, but if you were specifying it yourself, make sure you're using `adb -a -P 5037 server nodaemon`. Do NOT use the `fork-server` argument anymore.
+* The `.android` directory path has been fixed. Thanks to @alexislg2 for spotting it!
 
 ## Gotchas
 
@@ -16,16 +19,6 @@ This repository contains a [Dockerfile](https://www.docker.io/) for the [Android
 ## Security
 
 The container is preloaded with an RSA key for authentication, so that you won't have to accept a new key on the device every time you run the container (normally the key is generated on-demand by the adb binary). While convenient, it means that your device will be accessible over ADB to others who possess the key. You can supply your own keys by using `-v /your/key_folder:/root/.android` with `docker run`.
-
-## Updating the platform tools manually
-
-If you feel like the platform tools are out of date and can't wait for a new image, you can update the platform tools with the following command:
-
-```sh
-update-platform-tools.sh
-```
-
-It's in `/usr/local/bin` and therefore already in `$PATH`.
 
 ## Usage
 
@@ -38,13 +31,13 @@ This usage pattern shares the ADB server container's network with ADB client con
 Start the server:
 
 ```
-docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd sorccu/adb
+docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/adb
 ```
 
 Then on the same machine:
 
 ```
-docker run --rm -ti --net container:adbd sorccu/adb adb devices
+docker run --rm -ti --net container:adbd yaming116/adb adb devices
 docker run --rm -i --net container:adbd ubuntu nc localhost 5037 <<<000chost:devices
 ```
 
@@ -66,20 +59,20 @@ This usage pattern binds the ADB server directly to the host.
 Start the server:
 
 ```
-docker run -d --privileged --net host -v /dev/bus/usb:/dev/bus/usb --name adbd sorccu/adb
+docker run -d --privileged --net host -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/adb
 ```
 
 Then on the same machine:
 
 ```
-docker run --rm -ti --net host sorccu/adb adb devices
+docker run --rm -ti --net host yaming116/adb adb devices
 docker run --rm -i --net host ubuntu nc localhost 5037 <<<000chost:devices
 ```
 
 Or on another machine:
 
 ```
-docker run --rm -ti sorccu/adb adb -H x.x.x.x -P 5037 devices
+docker run --rm -ti yaming116/adb adb -H x.x.x.x -P 5037 devices
 ```
 
 **Pros:**
@@ -102,13 +95,13 @@ This usage pattern shares the ADB server container's network with ADB client con
 Start the server:
 
 ```
-docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd sorccu/adb
+docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/adb
 ```
 
 Then on the same machine:
 
 ```
-docker run --rm -ti --link adbd:adbd sorccu/adb \
+docker run --rm -ti --link adbd:adbd yaming116/adb \
   sh -c 'adb -H $ADBD_PORT_5037_TCP_ADDR -P 5037 devices'
 ```
 
@@ -131,13 +124,13 @@ This usage pattern works best when you want to access the ADB server from a remo
 Start the server:
 
 ```
-docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd -p 5037:5037 sorccu/adb
+docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd -p 5037:5037 yaming116/adb
 ```
 
 Then on the client host:
 
 ```
-docker run --rm -ti sorccu/adb adb -H x.x.x.x -P 5037 devices
+docker run --rm -ti yaming116/adb adb -H x.x.x.x -P 5037 devices
 ```
 
 Where `x.x.x.x` is the server host machine.
@@ -184,8 +177,8 @@ If you change the units, don't forget to run `systemctl daemon-reload` or they w
 ## Thanks
 
 * [Jérôme Petazzoni's post on the docker-user forum explaining USB device access](https://groups.google.com/d/msg/docker-user/UsekCwA1CSI/RtgmyJOsRtIJ)
-* @sgerrand for [sgerrand/alpine-pkg-glibc](https://github.com/sgerrand/alpine-pkg-glibc)
-* @frol for [frol/docker-alpine-glibc](https://github.com/frol/docker-alpine-glibc)
+* @docker-library for [docker-library/arm32v7/ubuntu](https://github.com/docker-library/repo-info/tree/master/repos/ubuntu)
+* @qhuyduong for [qhuyduong/arm_adb](https://github.com/qhuyduong/arm_adb)
 
 ## License
 

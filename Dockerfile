@@ -1,26 +1,25 @@
-FROM alpine:3.4
+FROM arm32v7/ubuntu:16.04
 
 # Set up insecure default key
 RUN mkdir -m 0750 /root/.android
 ADD files/insecure_shared_adbkey /root/.android/adbkey
 ADD files/insecure_shared_adbkey.pub /root/.android/adbkey.pub
-ADD files/update-platform-tools.sh /usr/local/bin/update-platform-tools.sh
+ADD files/adb /opt/platform-tools/adb
 
-RUN set -xeo pipefail && \
-    apk update && \
-    apk add wget ca-certificates tini && \
-    wget -O "/etc/apk/keys/sgerrand.rsa.pub" \
-      "https://raw.githubusercontent.com/andyshinn/alpine-pkg-glibc/master/sgerrand.rsa.pub" && \
-    wget -O "/tmp/glibc.apk" \
-      "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk" && \
-    wget -O "/tmp/glibc-bin.apk" \
-      "https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-bin-2.23-r3.apk" && \
-    apk add "/tmp/glibc.apk" "/tmp/glibc-bin.apk" && \
-    rm "/etc/apk/keys/sgerrand.rsa.pub" && \
-    rm "/root/.wget-hsts" && \
-    rm "/tmp/glibc.apk" "/tmp/glibc-bin.apk" && \
-    rm -r /var/cache/apk/APKINDEX.* && \
-    /usr/local/bin/update-platform-tools.sh
+ENV TINI_VERSION 0.18.0
+RUN set -x \
+    && apt-get update && apt-get install -y ca-certificates curl \
+        --no-install-recommends \
+    && curl -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-armhf" -o /usr/local/bin/tini \
+    && curl -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-armhf.asc" -o /usr/local/bin/tini.asc \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 6380DC428747F6C393FEACA59A84159D7001A4E5 \
+    && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
+    && rm -r "$GNUPGHOME" /usr/local/bin/tini.asc \
+    && chmod +x /usr/local/bin/tini \
+    && tini -h \
+    && apt-get purge --auto-remove -y ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Expose default ADB port
 EXPOSE 5037
@@ -29,7 +28,7 @@ EXPOSE 5037
 ENV PATH $PATH:/opt/platform-tools
 
 # Hook up tini as the default init system for proper signal handling
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["tini", "--"]
 
 # Start the server by default
 CMD ["adb", "-a", "-P", "5037", "server", "nodaemon"]
