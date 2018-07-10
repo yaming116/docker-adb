@@ -17,6 +17,7 @@ RUN set -x \
     && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
     && rm -r "$GNUPGHOME" /usr/local/bin/tini.asc \
     && chmod +x /usr/local/bin/tini \
+    && chmod +x /opt/platform-tools/adb \
     && tini -h \
     && apt-get purge --auto-remove -y ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
