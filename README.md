@@ -31,13 +31,13 @@ This usage pattern shares the ADB server container's network with ADB client con
 Start the server:
 
 ```
-docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/adb
+docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/arm32v7-adb
 ```
 
 Then on the same machine:
 
 ```
-docker run --rm -ti --net container:adbd yaming116/adb adb devices
+docker run --rm -ti --net container:adbd yaming116/arm32v7-adb adb devices
 docker run --rm -i --net container:adbd ubuntu nc localhost 5037 <<<000chost:devices
 ```
 
@@ -59,20 +59,20 @@ This usage pattern binds the ADB server directly to the host.
 Start the server:
 
 ```
-docker run -d --privileged --net host -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/adb
+docker run -d --privileged --net host -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/arm32v7-adb
 ```
 
 Then on the same machine:
 
 ```
-docker run --rm -ti --net host yaming116/adb adb devices
+docker run --rm -ti --net host yaming116/arm32v7-adb adb devices
 docker run --rm -i --net host ubuntu nc localhost 5037 <<<000chost:devices
 ```
 
 Or on another machine:
 
 ```
-docker run --rm -ti yaming116/adb adb -H x.x.x.x -P 5037 devices
+docker run --rm -ti yaming116/arm32v7-adb adb -H x.x.x.x -P 5037 devices
 ```
 
 **Pros:**
@@ -95,13 +95,13 @@ This usage pattern shares the ADB server container's network with ADB client con
 Start the server:
 
 ```
-docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/adb
+docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd yaming116/arm32v7-adb
 ```
 
 Then on the same machine:
 
 ```
-docker run --rm -ti --link adbd:adbd yaming116/adb \
+docker run --rm -ti --link adbd:adbd yaming116/arm32v7-adb \
   sh -c 'adb -H $ADBD_PORT_5037_TCP_ADDR -P 5037 devices'
 ```
 
@@ -124,13 +124,13 @@ This usage pattern works best when you want to access the ADB server from a remo
 Start the server:
 
 ```
-docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd -p 5037:5037 yaming116/adb
+docker run -d --privileged -v /dev/bus/usb:/dev/bus/usb --name adbd -p 5037:5037 yaming116/arm32v7-adb
 ```
 
 Then on the client host:
 
 ```
-docker run --rm -ti yaming116/adb adb -H x.x.x.x -P 5037 devices
+docker run --rm -ti yaming116/arm32v7-adb adb -H x.x.x.x -P 5037 devices
 ```
 
 Where `x.x.x.x` is the server host machine.
